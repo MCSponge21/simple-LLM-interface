@@ -32,51 +32,57 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let response: Value = client
         .chat()
         .create_byot(json!({
-                    "messages": [
+            "messages": [
+                {
+                    "role": "user",
+                    "content": args.prompt,
+                    "tool_calls": [
                         {
-          "choices": [
-            {
-              "index": 0,
-              "message": {
-                "role": "assistant",
-                "content": null,
-                "tool_calls": [
-                  {
-                    "id": "call_abc123",
-                    "type": "function",
-                    "function": {
-                      "name": "Read",
-                      "arguments": "{\"file_path\": \"/path/to/file.txt\"}"
-                    }
-                  }
-                ]
-              },
-              "finish_reason": "tool_calls"
-            }
-          ]
-        }
-                    ],
-                    "model": "anthropic/claude-haiku-4.5",
-                    "tools": [
-                        {
-                            "type": "function",
-                            "function": {
-                                "name": "Read",
-                                "description": "Read and return the contents of a file",
-                                "parameters": {
-                                "type": "object",
-                                "properties": {
-                                    "file_path": {
-                                    "type": "string",
-                                    "description": "The path to the file to read"
+                        "choices": [
+                            {
+                            "index": 0,
+                            "message": {
+                                "role": "assistant",
+                                "content": null,
+                                "tool_calls": [
+                                {
+                                    "id": "call_abc123",
+                                    "type": "function",
+                                    "function": {
+                                    "name": "Read",
+                                    "arguments": "{\"file_path\": \"/path/to/file.txt\"}"
                                     }
-                                },
-                                "required": ["file_path"]
                                 }
+                                ]
+                            },
+                            "finish_reason": "tool_calls"
                             }
+                        ]
                         }
                     ]
-                }))
+                }
+            ],
+            "model": "anthropic/claude-haiku-4.5",
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "Read",
+                        "description": "Read and return the contents of a file",
+                        "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "file_path": {
+                            "type": "string",
+                            "description": "The path to the file to read"
+                            }
+                        },
+                        "required": ["file_path"]
+                        }
+                    }
+                }
+            ]
+        }))
         .await?;
 
     // You can use print statements as follows for debugging, they'll be visible when running tests.
