@@ -62,7 +62,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             "required": ["file_path"]
                             }
                         },
-                    }
+                    },
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "Write",
+                            "description": "Write content to a file",
+                            "parameters": {
+                            "type": "object",
+                            "required": ["file_path", "content"],
+                            "properties": {
+                                "file_path": {
+                                "type": "string",
+                                "description": "The path of the file to write to"
+                                },
+                                "content": {
+                                "type": "string",
+                                "description": "The content to write to the file"
+                                }
+                            }
+                            }
+                        }
+                        }
                 ]
             }))
             .await?;
@@ -82,6 +103,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .unwrap();
 
                 let file = fs::read_to_string(&args["file_path"].as_str().unwrap())?;
+
+                if let Some(arr) = messages.as_array_mut() {
+                    arr.push(json!({
+                        "role": "tool",
+                        "tool_call_id": content[0]["id"].as_str(),
+                        "content": file
+                    }));
+                }
+
+
+            }else if name == "Write"{
+                let args: Value =
+                    serde_json::from_str(content[0]["function"]["arguments"].as_str().unwrap())
+                        .unwrap();
+
+                let file = fs::write(&args["file_path"].as_str().unwrap(), &args["content"].as_str().unwrap())?;
 
                 if let Some(arr) = messages.as_array_mut() {
                     arr.push(json!({
