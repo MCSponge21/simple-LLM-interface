@@ -75,6 +75,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             println!("{}", file);
         }
+    }else{
+        println!("{}",  &response["choices"][0]["message"]["content"].as_str().unwrap());
     }
 
     Ok(())
