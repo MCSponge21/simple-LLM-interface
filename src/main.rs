@@ -118,13 +118,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     serde_json::from_str(content[0]["function"]["arguments"].as_str().unwrap())
                         .unwrap();
 
-                let file = fs::write(&args["file_path"].as_str().unwrap(), &args["content"].as_str().unwrap())?;
-                eprintln!("DEBUG file = {:?}", file);
+                fs::write(&args["file_path"].as_str().unwrap(), &args["content"].as_str().unwrap())?;
                 if let Some(arr) = messages.as_array_mut() {
                     arr.push(json!({
                         "role": "tool",
                         "tool_call_id": content[0]["id"].as_str(),
-                        "content": file
+                        "content": "Success"
                     }));
                 }
             }
