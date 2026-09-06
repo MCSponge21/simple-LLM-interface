@@ -119,7 +119,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .unwrap();
 
                 let file = fs::write(&args["file_path"].as_str().unwrap(), &args["content"].as_str().unwrap())?;
-
+                eprintln!("DEBUG file = {:?}", file);
                 if let Some(arr) = messages.as_array_mut() {
                     arr.push(json!({
                         "role": "tool",
