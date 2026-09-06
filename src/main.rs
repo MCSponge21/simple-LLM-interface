@@ -1,7 +1,8 @@
 use async_openai::{Client, config::OpenAIConfig};
 use clap::Parser;
 use serde_json::{Value, json};
-use std::{env, process};
+use std::{env, fs::File, process};
+use std::fs::File;
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -56,30 +57,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         "required": ["file_path"]
                         }
                     },
-                    "tool_calls": [
-                        {
-                        "choices": [
-                            {
-                            "index": 0,
-                            "message": {
-                                "role": "assistant",
-                                "content": null,
-                                "tool_calls": [
-                                {
-                                    "id": "call_abc123",
-                                    "type": "function",
-                                    "function": {
-                                    "name": "Read",
-                                    "arguments": "{\"file_path\": \"/path/to/file.txt\"}"
-                                    }
-                                }
-                                ]
-                            },
-                            "finish_reason": "tool_calls"
-                            }
-                        ]
-                        }
-                    ]
                 }
             ]
         }))
@@ -89,7 +66,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("Logs from your program will appear here!");
 
     // TODO: Uncomment the lines below to pass the first stage
-    if let Some(content) = response["choices"][0]["message"]["content"].as_str() {
+    if let Some(content) = response["choices"][0]["message"]["tool_calls"].as_str() {
+        let name = &response["choices"][0]["message"]["tool_calls"]["function"]["name"].as_str();
+        let args: Value = serde_json::from_str(&response["choices"][0]["message"]["tool_calls"]["function"]["arguments"].as_str().unwrap()).unwrap();
+
+        println!("{:?}", args);
+
+        // let File = File::create_new(args.file_path);
+
         println!("{}", content);
     }
 
