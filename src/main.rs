@@ -1,7 +1,7 @@
 use async_openai::{Client, config::OpenAIConfig};
 use clap::Parser;
 use serde_json::{Value, json};
-use std::{env, fs::File, process};
+use std::{env, fs::{self, File}, io::Read, process};
 
 
 #[derive(Parser)]
@@ -67,14 +67,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // TODO: Uncomment the lines below to pass the first stage
     if let Some(content) = response["choices"][0]["message"]["tool_calls"].as_array() {
-        let name = &response["choices"][0]["message"]["tool_calls"][0]["function"]["name"].as_str();
-        let args: Value = serde_json::from_str(&response["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"].as_str().unwrap()).unwrap();
+        let name = content[0]["function"]["name"].as_str().unwrap();
+        if name == "Read" {
+            let args: Value = serde_json::from_str(&response["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"].as_str().unwrap()).unwrap();
 
-        println!("OUTPUT TEST!! {:?}", args);
+            let file = fs::read_to_string(&args["file_path"].as_str().unwrap())?;
 
-        // let File = File::create_new(args.file_path);
-
-        // println!("{}", content);
+            println!("{}", file);
+        }
     }
 
     Ok(())
