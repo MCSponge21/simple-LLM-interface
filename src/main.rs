@@ -68,7 +68,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // TODO: Uncomment the lines below to pass the first stage
     if let Some(content) = response["choices"][0]["message"]["tool_calls"].as_array() {
         let name = &response["choices"][0]["message"]["tool_calls"][0]["function"]["name"].as_str();
-        let args: Value = serde_json::from_str(&response["choices"][0]["message"]["tool_calls"]["function"]["arguments"].as_str().unwrap()).unwrap();
+        let args: Value = serde_json::from_str(&response["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"].as_str().unwrap()).unwrap();
 
         println!("OUTPUT TEST!! {:?}", args);
 
