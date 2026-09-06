@@ -69,7 +69,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(content) = response["choices"][0]["message"]["tool_calls"].as_array() {
         let name = content[0]["function"]["name"].as_str().unwrap();
         if name == "Read" {
-            let args: Value = serde_json::from_str(&response["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"].as_str().unwrap()).unwrap();
+            let args: Value = serde_json::from_str(content[0]["function"]["arguments"].as_str().unwrap()).unwrap();
 
             let file = fs::read_to_string(&args["file_path"].as_str().unwrap())?;
 
