@@ -1,8 +1,12 @@
 use async_openai::{Client, config::OpenAIConfig};
 use clap::Parser;
 use serde_json::{Value, json};
-use std::{env, fs::{self, File}, io::Read, process};
-
+use std::{
+    env,
+    fs::{self, File},
+    io::Read,
+    process,
+};
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -29,54 +33,73 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = Client::with_config(config);
 
-    #[allow(unused_variables)]
-    let response: Value = client
-        .chat()
-        .create_byot(json!({
-            "messages": [
-                {
-                    "role": "user",
-                    "content": args.prompt,
-                }
-            ],
-            "model": "anthropic/claude-haiku-4.5",
-            "tools": [
-                {
-                    "type": "function",
-                    "function": {
-                        "name": "Read",
-                        "description": "Read and return the contents of a file",
-                        "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "file_path": {
-                            "type": "string",
-                            "description": "The path to the file to read"
+    let mut messages: Value = json!([{
+        "role": "user",
+        "content": args.prompt
+    }]);
+
+    loop {
+        #[allow(unused_variables)]
+        let response: Value = client
+            .chat()
+            .create_byot(json!({
+                "messages": messages,
+                "model": "anthropic/claude-haiku-4.5",
+                "tools": [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "Read",
+                            "description": "Read and return the contents of a file",
+                            "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "file_path": {
+                                "type": "string",
+                                "description": "The path to the file to read"
+                                }
+                            },
+                            "required": ["file_path"]
                             }
                         },
-                        "required": ["file_path"]
-                        }
-                    },
-                }
-            ]
-        }))
-        .await?;
+                    }
+                ]
+            }))
+            .await?;
 
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    eprintln!("Logs from your program will appear here!");
-
-    // TODO: Uncomment the lines below to pass the first stage
-    if let Some(content) = response["choices"][0]["message"]["tool_calls"].as_array() {
-        let name = content[0]["function"]["name"].as_str().unwrap();
-        if name == "Read" {
-            let args: Value = serde_json::from_str(content[0]["function"]["arguments"].as_str().unwrap()).unwrap();
-
-            let file = fs::read_to_string(&args["file_path"].as_str().unwrap())?;
-
-            println!("{}", file);
+        if let Some(arr) = messages.as_array_mut() {
+            arr.push(json!(response["choices"][0]["message"]));
         }
-    }else{
-        println!("{}",  &response["choices"][0]["message"]["content"].as_str().unwrap());
+        // You can use print statements as follows for debugging, they'll be visible when running tests.
+        eprintln!("Logs from your program will appear here!");
+
+        // TODO: Uncomment the lines below to pass the first stage
+        if let Some(content) = response["choices"][0]["message"]["tool_calls"].as_array() {
+            let name = content[0]["function"]["name"].as_str().unwrap();
+            if name == "Read" {
+                let args: Value =
+                    serde_json::from_str(content[0]["function"]["arguments"].as_str().unwrap())
+                        .unwrap();
+
+                let file = fs::read_to_string(&args["file_path"].as_str().unwrap())?;
+
+                if let Some(arr) = messages.as_array_mut() {
+                    arr.push(json!({
+                        "role": "tool",
+                        "tool_call_id": content[0]["id"].as_str(),
+                        "content": file
+                    }));
+                }
+            }
+        } else {
+            println!(
+                "{}",
+                &response["choices"][0]["message"]["content"]
+                    .as_str()
+                    .unwrap()
+            );
+            break;
+        }
     }
 
     Ok(())
