@@ -70,7 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let name = &response["choices"][0]["message"]["tool_calls"]["function"]["name"].as_str();
         let args: Value = serde_json::from_str(&response["choices"][0]["message"]["tool_calls"]["function"]["arguments"].as_str().unwrap()).unwrap();
 
-        println!("{:?}", args);
+        println!("OUTPUT TEST!! {:?}", args);
 
         // let File = File::create_new(args.file_path);
 
