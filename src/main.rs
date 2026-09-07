@@ -150,7 +150,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 let commands: Vec<&str> = args["command"].as_str().unwrap().split_whitespace().collect();
 
-                // fs::write(&args["command"].as_str().unwrap(), &args["content"].as_str().unwrap())?;
                 let output = process::Command::new(commands[0]).args(&commands[1..]).output()?;
 
                 if let Some(arr) = messages.as_array_mut() {
