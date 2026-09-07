@@ -83,7 +83,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
                             }
                         }
+                    },
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "Bash",
+                            "description": "Execute a shell command",
+                            "parameters": {
+                            "type": "object",
+                            "required": ["command"],
+                            "properties": {
+                                "command": {
+                                "type": "string",
+                                "description": "The command to execute"
+                                }
+                            }
+                            }
                         }
+                    }
                 ]
             }))
             .await?;
@@ -124,6 +141,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         "role": "tool",
                         "tool_call_id": content[0]["id"].as_str(),
                         "content": "Success"
+                    }));
+                }
+            }else if name == "Bash"{
+                let args: Value =
+                    serde_json::from_str(content[0]["function"]["arguments"].as_str().unwrap())
+                        .unwrap();
+
+                let command = &args["command"].as_str().unwrap();
+
+                // fs::write(&args["command"].as_str().unwrap(), &args["content"].as_str().unwrap())?;
+                let output = process::Command::new(command).output()?;
+
+                if let Some(arr) = messages.as_array_mut() {
+                    arr.push(json!({
+                        "role": "tool",
+                        "tool_call_id": content[0]["id"].as_str(),
+                        "content": String::from_utf8(output.stdout).unwrap()
                     }));
                 }
             }
